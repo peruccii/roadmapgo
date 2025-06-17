@@ -16,6 +16,10 @@ type UserInput struct {
 	Password string `validate:"required,min=8"`
 }
 
+type UserService interface {
+	CreateUser(input UserInput) error
+}
+
 type userService struct {
 	repo repository.UserRepository
 }

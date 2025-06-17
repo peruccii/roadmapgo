@@ -19,5 +19,6 @@ func main() {
 		panic("failed to connect to database: " + err.Error())
 	}
 
+	// Migrar estrutura do banco
 	database.AutoMigrate(&models.User{}, &models.Courses{})
 }
