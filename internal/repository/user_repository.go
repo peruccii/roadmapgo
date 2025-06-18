@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/peruccii/roadmap-go-backend/internal/models"
 	"gorm.io/gorm"
@@ -12,6 +13,33 @@ type userRepository struct{ db *gorm.DB }
 type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
+	Delete(email, ID string) error
+}
+
+type DeleteUserParams struct {
+	Email string
+	ID    string
+}
+
+func (r *userRepository) Delete(params DeleteUserParams) error {
+	
+	if params.Email == "" && params.ID == "" {
+        return fmt.Errorf("at least one of email or ID must be provided")
+    }
+
+    query := r.db
+
+    if params.Email != "" {
+        query = query.Where("email = ?", params.Email)
+    } else if params.ID != "" {
+        query = query.Where("id = ?", params.ID)
+    }
+
+	if err := query.Delete(&models.User{}).Error; err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	return nil
 }
 
 func (r *userRepository) FindByEmail(email string) (*models.User, error) {

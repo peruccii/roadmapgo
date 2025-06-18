@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/peruccii/roadmap-go-backend/internal/dtos"
 	"github.com/peruccii/roadmap-go-backend/internal/models"
 	"github.com/peruccii/roadmap-go-backend/internal/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,7 @@ type UserInput struct {
 
 type UserService interface {
 	CreateUser(input UserInput) error
+	FindByEmail(email string) (*models.User, error)
 }
 
 type userService struct {
@@ -56,4 +58,8 @@ func (s *userService) CreateUser(input UserInput) error {
 		return err
 	}
 	return nil
+}
+
+func (s *userService) FindByEmail(email string) (*models.User, error) {
+	return s.repo.FindByEmail(email)
 }
