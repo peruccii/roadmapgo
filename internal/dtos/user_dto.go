@@ -11,3 +11,9 @@ type UserOutput struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type UpdateUserInputDTO struct {
+	Name     string `json:"name" validate:"omitempty,min=2,max=255"`
+	Email    string `json:"email" validate:"omitempty,email,max=255"`
+	Password string `json:"password" validate:"omitempty,min=4,max=255"`
+}

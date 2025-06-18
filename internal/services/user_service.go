@@ -20,10 +20,61 @@ type UserInput struct {
 type UserService interface {
 	CreateUser(input UserInput) error
 	FindByEmail(email string) (*models.User, error)
+	Delete(params repository.DeleteUserParams) error
+	Update(ID int64, input dtos.UpdateUserInputDTO) error
 }
 
 type userService struct {
 	repo repository.UserRepository
+}
+
+func (s *userService) Update(ID int64, input dtos.UpdateUserInputDTO) error {
+	validate := validator.New()
+	if err := validate.Struct(input); err != nil {
+		return errors.New("invalid input" + err.Error())
+	}
+
+	user, err := s.repo.FindByEmail(input.Email)
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return nil
+	}
+
+	// verificar se o novo email ( se fornecido ) já esta em uso por outro usuario
+
+	if input.Email != "" && input.Email != user.Email {
+		existingUser, err := s.repo.FindByEmail(input.Email)
+		if err != nil {
+			return err
+		}
+
+		if existingUser != nil {
+			return errors.New("email already exists")
+		}
+	}
+
+	// todo
+
+	if input.Email != "" {
+		user.Email = input.Email
+	}
+
+	if input.Name != "" {
+		user.Name = input.Name
+	}
+
+	if input.Password != "" {
+		user.Password = input.Password // todo: hash
+	}
+
+	return nil
+}
+
+func (s *userService) Delete(params repository.DeleteUserParams) error {
+	return s.repo.Delete(params.Email, params.ID)
 }
 
 func (s *userService) CreateUser(input UserInput) error {
