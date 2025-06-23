@@ -7,4 +7,11 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine, userService services.UserService) {
+	userController := controller.NewUserController(userService)
+
+	users := r.Group("/users")
+	{
+		users.POST("", userController.Create)
+		users.GET("/email/:email", userController.FindByEmail)
+	}
 }

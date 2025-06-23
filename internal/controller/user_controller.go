@@ -17,6 +17,10 @@ type userController struct {
 	service services.UserService
 }
 
+func NewUserController(service services.UserService) UserController {
+	return &userController{service: service}
+}
+
 func (ctrl *userController) Create(c *gin.Context) {
 	var input services.UserInput
 	if err := c.ShouldBindJSON(&input); err != nil {

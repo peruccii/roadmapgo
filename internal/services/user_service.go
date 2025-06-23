@@ -28,6 +28,11 @@ type userService struct {
 	repo repository.UserRepository
 }
 
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
 func (s *userService) Update(ID int64, input dtos.UpdateUserInputDTO) error {
 	validate := validator.New()
 	if err := validate.Struct(input); err != nil {
@@ -65,16 +70,21 @@ func (s *userService) Update(ID int64, input dtos.UpdateUserInputDTO) error {
 	if input.Name != "" {
 		user.Name = input.Name
 	}
+	user.UpdatedAt = time.Now()
 
 	if input.Password != "" {
-		user.Password = input.Password // todo: hash
+		hashPassword, err := hashPassword(input.Password)
+		if err != nil {
+			return errors.New("failed to hash password" + err.Error())
+		}
+		user.Password = string(hashPassword)
 	}
 
 	return nil
 }
 
 func (s *userService) Delete(params repository.DeleteUserParams) error {
-	return s.repo.Delete(params.Email, params.ID)
+	return s.repo.Delete(params)
 }
 
 func (s *userService) CreateUser(input UserInput) error {
@@ -92,7 +102,7 @@ func (s *userService) CreateUser(input UserInput) error {
 		return errors.New("email already exists")
 	}
 
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashPassword, err := hashPassword(input.Password)
 	if err != nil {
 		return errors.New("failed to hash password" + err.Error())
 	}

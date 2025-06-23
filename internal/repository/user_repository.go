@@ -13,7 +13,7 @@ type userRepository struct{ db *gorm.DB }
 type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
-	Delete(email, ID string) error
+	Delete(params DeleteUserParams) error
 }
 
 type DeleteUserParams struct {
@@ -22,18 +22,17 @@ type DeleteUserParams struct {
 }
 
 func (r *userRepository) Delete(params DeleteUserParams) error {
-	
 	if params.Email == "" && params.ID == "" {
-        return fmt.Errorf("at least one of email or ID must be provided")
-    }
+		return fmt.Errorf("at least one of email or ID must be provided")
+	}
 
-    query := r.db
+	query := r.db
 
-    if params.Email != "" {
-        query = query.Where("email = ?", params.Email)
-    } else if params.ID != "" {
-        query = query.Where("id = ?", params.ID)
-    }
+	if params.Email != "" {
+		query = query.Where("email = ?", params.Email)
+	} else if params.ID != "" {
+		query = query.Where("id = ?", params.ID)
+	}
 
 	if err := query.Delete(&models.User{}).Error; err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
@@ -55,7 +54,7 @@ func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 
 // First() -> retorna os dados se encontrados e popula a variavel user com os dados encontrados
 
-// Método associado ao struct ( r == this. )
+// o Método associado ao strct ( r == this. )
 func (r *userRepository) Create(user *models.User) error {
 	tx := r.db.Begin() // starts a manual @Transactional
 	result := tx.Create(user)
