@@ -12,7 +12,8 @@ import (
 )
 
 type StripeProvider struct {
-	SecretKey string
+	SecretKey     string
+	stripeService StripeService
 }
 
 type StripeService interface {
@@ -36,10 +37,17 @@ func (s *StripeProvider) CreateCustomer() (*stripe.Customer, error) {
 
 func (s *StripeProvider) CreateCheckoutSession() (*stripe.CheckoutSession, error) {
 	stripe.Key = s.SecretKey
+
+	customer, err := s.CreateCustomer()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create customer: %w", err)
+	}
+
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String("https://example.com/success"),
-		Mode:       stripe.String("setup"),
-		Customer:   stripe.String("cus_HKtmyFxyxPZQDm"),
+		SuccessURL:    stripe.String("https://example.com/success"),
+		Mode:          stripe.String(stripe.CheckoutSessionModePayment),
+		Customer:      stripe.String(customer.ID),
+		CustomerEmail: stripe.String(customer.Email),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 			"pix",
@@ -47,9 +55,12 @@ func (s *StripeProvider) CreateCheckoutSession() (*stripe.CheckoutSession, error
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String("usd"),
+					// Currency: stripe.String("usd"),
 					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String("productName"),
+						Name:   stripe.String("productName"),
+						Images: stripe.StringSlice([]string{}),
+						// additional information
+						Metadata: map[string]string{"key": "value"},
 					},
 				},
 			},
