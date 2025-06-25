@@ -30,7 +30,7 @@ func CheckPasswordHash(password, hash string) bool {
 
 var secretKey = []byte("sadkfn72!")
 
-func createToken(userId string) (string, error) {
+func createToken(userId int64) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"user_id": userId,
@@ -59,7 +59,7 @@ func (s *uService) AuthUser(params authParams) (dtos.AuthOutputDTO, error) {
 		return dtos.AuthOutputDTO{}, errors.New("invalid password")
 	}
 
-	tokenString, _ := createToken(string(existingUser.ID))
+	tokenString, _ := createToken(int64(existingUser.ID))
 
 	response := dtos.AuthOutputDTO{
 		AccessToken: tokenString,

@@ -1,7 +1,7 @@
 package repository
 
 type authParams struct {
-	Email string
+	Email    string
 	Password string
 }
 
@@ -10,5 +10,5 @@ type AuthRepository interface {
 }
 
 func AuthUser(params authParams) (string, error) {
-
+	return "aa", nil
 }

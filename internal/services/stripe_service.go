@@ -92,6 +92,10 @@ func (s *StripeProvider) HandleEvents(event stripe.Event) error {
 			fmt.Fprintf(os.Stderr, "Error parsing webhook JSON: %v\n", err)
 			return err
 		}
+	case "checkout.session.completed":
+
+	case "checkout.session.async_payment_failed":
+
 	default:
 		fmt.Fprintf(os.Stderr, "Unhandled event type: %s\n", event.Type)
 	}

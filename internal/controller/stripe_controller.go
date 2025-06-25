@@ -15,7 +15,7 @@ type StripeService struct {
 	services services.StripeService
 }
 
-func StripeWebhookController() {
+func (s *StripeService) StripeWebhookController() {
 	http.HandleFunc("/webhook", func(w http.ResponseWriter, req *http.Request) {
 		const MaxBodyBytes = int64(65536)
 		req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
@@ -34,7 +34,7 @@ func StripeWebhookController() {
 			return
 		}
 
-		if err := services.HandleEvents(event); err != nil {
+		if err := s.services.HandleEvents(event); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
