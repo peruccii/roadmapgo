@@ -2,25 +2,34 @@ package services
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/peruccii/roadmap-go-backend/internal/dtos"
 	"github.com/peruccii/roadmap-go-backend/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type authParams struct {
-	Email    string
-	Password string
-}
-
 type AuthService interface {
-	AuthUser(params authParams) (dtos.AuthOutputDTO, error)
+	AuthUser(params dtos.AuthInputDTO) (dtos.AuthOutputDTO, error)
 }
 
-type uService struct {
-	repo repository.UserRepository
+type authService struct {
+	repo      repository.UserRepository
+	secretKey []byte
+}
+
+func NewAuthService(repo repository.UserRepository) AuthService {
+	secret := os.Getenv("JWT_SECRET_KEY")
+	if secret == "" {
+		secret = "default-secret" // Fallback for development
+	}
+	return &authService{
+		repo:      repo,
+		secretKey: []byte(secret),
+	}
 }
 
 func CheckPasswordHash(password, hash string) bool {
@@ -28,24 +37,17 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-var secretKey = []byte("sadkfn72!")
-
-func createToken(userId int64) (string, error) {
+func (s *authService) createToken(userId uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"user_id": userId,
 			"exp":     time.Now().Add(time.Hour * 24).Unix(),
 		})
 
-	tokenString, err := token.SignedString(secretKey)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
+	return token.SignedString(s.secretKey)
 }
 
-func (s *uService) AuthUser(params authParams) (dtos.AuthOutputDTO, error) {
+func (s *authService) AuthUser(params dtos.AuthInputDTO) (dtos.AuthOutputDTO, error) {
 	existingUser, err := s.repo.FindByEmail(params.Email)
 	if err != nil {
 		return dtos.AuthOutputDTO{}, errors.New("failed to find user: " + err.Error())
@@ -59,7 +61,10 @@ func (s *uService) AuthUser(params authParams) (dtos.AuthOutputDTO, error) {
 		return dtos.AuthOutputDTO{}, errors.New("invalid password")
 	}
 
-	tokenString, _ := createToken(int64(existingUser.ID))
+	tokenString, err := s.createToken(existingUser.ID)
+	if err != nil {
+		return dtos.AuthOutputDTO{}, errors.New("failed to generate token")
+	}
 
 	response := dtos.AuthOutputDTO{
 		AccessToken: tokenString,

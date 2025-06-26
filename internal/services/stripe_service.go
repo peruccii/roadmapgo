@@ -11,6 +11,8 @@ import (
 	"github.com/stripe/stripe-go/v82/customer"
 )
 
+// StripeProvider struct remains the same
+
 type StripeProvider struct {
 	SecretKey     string
 	stripeService StripeService
@@ -19,6 +21,13 @@ type StripeProvider struct {
 type StripeService interface {
 	CreateCustomer() (*stripe.Customer, error)
 	HandleEvents(event stripe.Event) error
+	CreateCheckoutSession() (*stripe.CheckoutSession, error)
+}
+
+func NewStripeService() StripeService {
+	return &StripeProvider{
+		SecretKey: os.Getenv("STRIPE_SECRET_KEY"),
+	}
 }
 
 // creating ( create customer painel )

@@ -1,11 +1,15 @@
-package app
+package main
 
 import (
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/peruccii/roadmap-go-backend/internal/api"
 	"github.com/peruccii/roadmap-go-backend/internal/db"
 	"github.com/peruccii/roadmap-go-backend/internal/models"
+	"github.com/peruccii/roadmap-go-backend/internal/repository"
+	"github.com/peruccii/roadmap-go-backend/internal/services"
 )
 
 func main() {
@@ -20,5 +24,15 @@ func main() {
 	}
 
 	// Migrar estrutura do banco
-	database.AutoMigrate(&models.User{}, &models.Courses{})
+	database.AutoMigrate(&models.User{}, &models.Robots{})
+
+	userRepo := repository.NewUserRepository(database)
+	userService := services.NewUserService(userRepo)
+	authService := services.NewAuthService(userRepo)
+	stripeService := services.NewStripeService()
+
+	r := gin.Default()
+	api.SetupRoutes(r, userService, authService, stripeService)
+
+	r.Run(":8080")
 }

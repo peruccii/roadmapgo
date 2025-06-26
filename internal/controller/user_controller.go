@@ -36,19 +36,17 @@ func (ctrl *userController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, "[ user ] - created")
 }
 
-
 func (ctrl *userController) FindByEmail(c *gin.Context) {
 	email := c.Param("email")
 	if email == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
 		return
 	}
-		
-	user, err := ctrl.service.FindByEmail(email)
 
+	user, err := ctrl.service.FindByEmail(email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return 
+		return
 	}
 
 	if user == nil {
@@ -57,9 +55,9 @@ func (ctrl *userController) FindByEmail(c *gin.Context) {
 	}
 
 	response := dtos.UserOutput{
-		ID: user.ID,
-		Name: user.Name,
-		Email: user.Email,
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}

@@ -63,6 +63,7 @@ func (r *userRepository) Create(user *models.User) error {
 	if err != nil {
 		tx.Rollback() // transactional cancelled
 		return errors.New("failed to create user:" + err.Error())
+
 	}
 
 	return tx.Commit().Error // persisting in database ( if persist Error ( returned ) )
