@@ -10,13 +10,9 @@ import (
 
 type robotRepository struct{ db *gorm.DB }
 
-<<<<<<< HEAD
 func NewRobotRepository(db *gorm.DB) RobotRepository {
 	return &robotRepository{db: db}
 }
-=======
-
->>>>>>> 36a86502da1bde880b25e8ef2173dcb9fa6ff936
 
 type RobotRepository interface {
 	Create(robot *models.Robot) error
