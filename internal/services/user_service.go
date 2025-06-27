@@ -87,7 +87,7 @@ func (s *userService) Update(ID int64, input dtos.UpdateUserInputDTO) error {
 	return nil
 }
 
-func (s *userService) Delete(params repository.DeleteUserParams) error {
+func (s *userService) Delete(params *repository.DeleteUserParams) error {
 	return s.repo.Delete(params)
 }
 

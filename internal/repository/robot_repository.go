@@ -10,16 +10,20 @@ import (
 
 type robotRepository struct{ db *gorm.DB }
 
+<<<<<<< HEAD
 func NewRobotRepository(db *gorm.DB) RobotRepository {
 	return &robotRepository{db: db}
 }
+=======
+
+>>>>>>> 36a86502da1bde880b25e8ef2173dcb9fa6ff936
 
 type RobotRepository interface {
 	Create(robot *models.Robot) error
 	FindByName(name string) (*models.Robot, error)
 }
 
-func (r *robotRepository) Active(input dtos.ActiveReqInputDTO) *models.Robot {
+func (r *robotRepository) Active(input *dtos.ActiveReqInputDTO) *models.Robot {
 	var robo models.Robot
 	if err := r.db.First(&robo, "id = ?", input.DeviceID).Error; err != nil {
 		return &models.Robot{}

@@ -9,6 +9,6 @@ type AuthRepository interface {
 	AuthUser(params authParams)
 }
 
-func AuthUser(params authParams) (string, error) {
+func AuthUser(params *authParams) (string, error) {
 	return "aa", nil
 }

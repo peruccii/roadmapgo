@@ -21,7 +21,7 @@ type Robot struct {
 	UserID         uuid.UUID `gorm:"type:uuid;not null"`
 	User           User      `gorm:"foreignKey:UserID"`
 	ActivateIn     *time.Time
-	Status         RobotStatus `gorm:"type:text;default:'pendente'"`
+	Status         RobotStatus `gorm:"type:text;default:'pending'"`
 	PlanValidUntil *time.Time
 	LastPing       *time.Time
 	CreatedAt      time.Time `gorm:"autoCreateTime"`

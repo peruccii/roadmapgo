@@ -12,7 +12,11 @@ type User struct {
 	Name      string    `json:"name" db:"name" gorm:"type:varchar(255);not null"`
 	Email     string    `json:"email" db:"email" gorm:"type:varchar(255);unique;not null"`
 	Password  string    `json:"-" db:"password" gorm:"type:varchar(255);not null"` // hash, n exposto no JSON
+<<<<<<< HEAD
 	Robots    []Robot   `json:"robots" gorm:"manytoone:user_robots;"`
+=======
+	Robots    []Robot  `json:"robots" gorm:"manytoone:user_robots;"`
+>>>>>>> 36a86502da1bde880b25e8ef2173dcb9fa6ff936
 	CreatedAt time.Time `json:"created_at" db:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at" gorm:"autoUpdateTime"`
 

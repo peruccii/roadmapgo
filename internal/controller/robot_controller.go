@@ -21,7 +21,7 @@ type RobotController interface {
 }
 
 func (ctrl *robotController) Create(c *gin.Context) {
-	var input services.CreateRobotInput
+	var input *services.CreateRobotInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input: " + err.Error()})
 		return
@@ -51,10 +51,14 @@ func (ctrl *robotController) FindByName(c *gin.Context) {
 		return
 	}
 
+<<<<<<< HEAD
 	if robot == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "robot not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, robot)
+=======
+	activate, err := ctrl.services.Active(existingRobot)
+>>>>>>> 36a86502da1bde880b25e8ef2173dcb9fa6ff936
 }
