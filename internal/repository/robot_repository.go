@@ -10,12 +10,14 @@ import (
 
 type robotRepository struct{ db *gorm.DB }
 
+
+
 type RobotRepository interface {
 	Create(robot *models.Robot) error
 	FindByName(name string) (*models.Robot, error)
 }
 
-func (r *robotRepository) Active(input dtos.ActiveReqInputDTO) *models.Robot {
+func (r *robotRepository) Active(input *dtos.ActiveReqInputDTO) *models.Robot {
 	var robo models.Robot
 	if err := r.db.First(&robo, "id = ?", input.DeviceID).Error; err != nil {
 		return &models.Robot{}
@@ -38,10 +40,6 @@ func (r *robotRepository) FindByName(name string) (*models.Robot, error) {
 func (r *robotRepository) Create(robot *models.Robot) error {
 	tx := r.db.Begin()
 	result := tx.Create(robot)
-
-    plan := models.Plan{
-        UserID: result.,
-    }
 
 	err := result.Error
 	if err != nil {

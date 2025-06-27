@@ -19,7 +19,7 @@ type robotController struct {
 }
 
 func (ctrl *robotController) Create(c *gin.Context) {
-	var input services.CreateRobotInput
+	var input *services.CreateRobotInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input: " + err.Error()})
 		return
@@ -51,6 +51,5 @@ func (ctrl *robotController) Active(c *gin.Context) {
 	if err != nil {
 	}
 
-	if existingRobot == nil {
-	}
+	activate, err := ctrl.services.Active(existingRobot)
 }

@@ -13,7 +13,7 @@ type userRepository struct{ db *gorm.DB }
 type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
-	Delete(params DeleteUserParams) error
+	Delete(params *DeleteUserParams) error
 }
 
 type DeleteUserParams struct {
@@ -21,7 +21,7 @@ type DeleteUserParams struct {
 	ID    string
 }
 
-func (r *userRepository) Delete(params DeleteUserParams) error {
+func (r *userRepository) Delete(params *DeleteUserParams) error {
 	if params.Email == "" && params.ID == "" {
 		return fmt.Errorf("at least one of email or ID must be provided")
 	}
