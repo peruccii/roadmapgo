@@ -14,6 +14,7 @@ import (
 
 type AuthService interface {
 	AuthUser(params dtos.AuthInputDTO) (dtos.AuthOutputDTO, error)
+	VerifyToken(token string) (jwt.MapClaims, error)
 }
 
 type authService struct {
@@ -45,6 +46,22 @@ func (s *authService) createToken(userId uuid.UUID) (string, error) {
 		})
 
 	return token.SignedString(s.secretKey)
+}
+
+func (s *authService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return s.secretKey, nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims")
+	}
+
+	return claims, nil
 }
 
 func (s *authService) AuthUser(params dtos.AuthInputDTO) (dtos.AuthOutputDTO, error) {

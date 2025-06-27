@@ -16,6 +16,10 @@ type UserRepository interface {
 	Delete(params DeleteUserParams) error
 }
 
+func NewUserRepository(db *gorm.DB) UserRepository {
+	return &userRepository{db: db}
+}
+
 type DeleteUserParams struct {
 	Email string
 	ID    string

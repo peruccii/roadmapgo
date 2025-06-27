@@ -24,15 +24,22 @@ func main() {
 	}
 
 	// Migrar estrutura do banco
-	database.AutoMigrate(&models.User{}, &models.Robots{})
+		database.AutoMigrate(&models.User{}, &models.Robot{}, &models.Plan{})
+
 
 	userRepo := repository.NewUserRepository(database)
 	userService := services.NewUserService(userRepo)
 	authService := services.NewAuthService(userRepo)
 	stripeService := services.NewStripeService()
 
+	planRepo := repository.NewPlanRepository(database)
+	planService := services.NewPlanService(planRepo)
+
+	robotRepo := repository.NewRobotRepository(database)
+	robotService := services.NewRobotService(robotRepo, planService)
+
 	r := gin.Default()
-	api.SetupRoutes(r, userService, authService, stripeService)
+	api.SetupRoutes(r, userService, authService, stripeService, robotService)
 
 	r.Run(":8080")
 }

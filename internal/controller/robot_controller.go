@@ -4,18 +4,20 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/peruccii/roadmap-go-backend/internal/dtos"
-	"github.com/peruccii/roadmap-go-backend/internal/models"
 	"github.com/peruccii/roadmap-go-backend/internal/services"
 )
 
-type RobotController interface {
-	Create(robot *models.Robot) error
-	FindByName(name string) (*models.Robot, error)
-}
-
 type robotController struct {
 	services services.RobotService
+}
+
+func NewRobotController(service services.RobotService) RobotController {
+	return &robotController{services: service}
+}
+
+type RobotController interface {
+	Create(c *gin.Context)
+	FindByName(c *gin.Context)
 }
 
 func (ctrl *robotController) Create(c *gin.Context) {
@@ -25,6 +27,14 @@ func (ctrl *robotController) Create(c *gin.Context) {
 		return
 	}
 
+	userID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		return
+	}
+
+	input.UserID = userID.(string)
+
 	if err := ctrl.services.CreateRobot(input); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -33,24 +43,18 @@ func (ctrl *robotController) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, "[ robot ] - created")
 }
 
-func (ctrl *robotController) Active(c *gin.Context) {
-	var req dtos.ActiveReqInputDTO
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"erro": "Invalid Data"})
-		return
-	}
-
-	userID, ok := c.Get("usuario_id") // Pega o ID do usuário do JWT (via middleware)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"erro": "User not found"})
-		return
-	}
-
-	existingRobot, err := ctrl.services.FindByName(req.Name)
+func (ctrl *robotController) FindByName(c *gin.Context) {
+	name := c.Param("name")
+	robot, err := ctrl.services.FindByName(name)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	if existingRobot == nil {
+	if robot == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "robot not found"})
+		return
 	}
+
+	c.JSON(http.StatusOK, robot)
 }

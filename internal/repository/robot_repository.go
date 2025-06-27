@@ -10,6 +10,10 @@ import (
 
 type robotRepository struct{ db *gorm.DB }
 
+func NewRobotRepository(db *gorm.DB) RobotRepository {
+	return &robotRepository{db: db}
+}
+
 type RobotRepository interface {
 	Create(robot *models.Robot) error
 	FindByName(name string) (*models.Robot, error)
@@ -38,10 +42,6 @@ func (r *robotRepository) FindByName(name string) (*models.Robot, error) {
 func (r *robotRepository) Create(robot *models.Robot) error {
 	tx := r.db.Begin()
 	result := tx.Create(robot)
-
-    plan := models.Plan{
-        UserID: result.,
-    }
 
 	err := result.Error
 	if err != nil {
