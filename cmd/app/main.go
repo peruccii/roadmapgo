@@ -3,44 +3,30 @@ package main
 import (
 	"fmt"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/peruccii/roadmap-go-backend/internal/api"
 	"github.com/peruccii/roadmap-go-backend/internal/db"
 	"github.com/peruccii/roadmap-go-backend/internal/models"
-	"github.com/peruccii/roadmap-go-backend/internal/repository"
-	"github.com/peruccii/roadmap-go-backend/internal/services"
 )
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Println("Aviso: Não foi possível carregar o arquivo .env. Usando variáveis de ambiente do sistema.")
 	}
 
 	database, err := db.InitDB("sqlite", "test.db")
 	if err != nil {
-		panic("failed to connect to database: " + err.Error())
+		panic("Falha ao conectar ao banco de dados: " + err.Error())
 	}
 
-	// Migrar estrutura do banco
-		database.AutoMigrate(&models.User{}, &models.Robot{}, &models.Plan{})
+	err = database.AutoMigrate(&models.User{}, &models.Robot{}, &models.Plan{}, &models.ConversaLog{})
+	if err != nil {
+		panic("Falha ao migrar o banco de dados: " + err.Error())
+	}
 
+	r := api.SetupRouter(database)
 
-	userRepo := repository.NewUserRepository(database)
-	userService := services.NewUserService(userRepo)
-	authService := services.NewAuthService(userRepo)
-	stripeService := services.NewStripeService()
-
-	planRepo := repository.NewPlanRepository(database)
-	planService := services.NewPlanService(planRepo)
-
-	robotRepo := repository.NewRobotRepository(database)
-	robotService := services.NewRobotService(robotRepo, planService)
-
-	r := gin.Default()
-	api.SetupRoutes(r, userService, authService, stripeService, robotService)
-
+	fmt.Println("Servidor rodando na porta 8080...")
 	r.Run(":8080")
 }
-

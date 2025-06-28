@@ -4,28 +4,45 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/peruccii/roadmap-go-backend/internal/api/middleware"
 	"github.com/peruccii/roadmap-go-backend/internal/controller"
+	"github.com/peruccii/roadmap-go-backend/internal/repository"
 	"github.com/peruccii/roadmap-go-backend/internal/services"
+	"gorm.io/gorm"
 )
 
-func SetupRoutes(r *gin.Engine, userService services.UserService, authService services.AuthService, stripeService services.StripeService, robotService services.RobotService) {
-	userController := controller.NewUserController(userService)
+func SetupRouter(db *gorm.DB) *gin.Engine {
+	r := gin.Default()
+
+	userRepo := repository.NewUserRepository(db)
+	planRepo := repository.NewPlanRepository(db)
+	robotRepo := repository.NewRobotRepository(db)
+
+	authService := services.NewAuthService(userRepo)
+	userService := services.NewUserService(userRepo)
+	planService := services.NewPlanService(planRepo)
+	robotService := services.NewRobotService(robotRepo, planService)
+	iaService := services.NewIAService()
+
 	authController := controller.NewAuthController(authService)
-	stripeController := controller.NewStripeController(stripeService)
+	userController := controller.NewUserController(userService)
 	robotController := controller.NewRobotController(robotService)
+	conversaController := controller.NewConversaController(db, iaService)
 
-	r.POST("/login", authController.Login)
-
-	r.POST("/webhook", stripeController.StripeWebhookController)
-
-	users := r.Group("/users")
+	api := r.Group("/api")
 	{
-		users.POST("", userController.Create)
-		users.GET("/email/:email", userController.FindByEmail)
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", userController.Create)
+			auth.POST("/login", authController.Login)
+		}
+
+		robots := api.Group("/robots").Use(middleware.AuthMiddleware(authService))
+		{
+			robots.POST("", robotController.Create)
+			robots.GET("/:name", robotController.FindByName)
+		}
+
+		api.POST("/conversa", middleware.RoboAuthMiddleware(authService), conversaController.Conversa)
 	}
 
-	robots := r.Group("/robots").Use(middleware.AuthMiddleware(authService))
-	{
-		robots.POST("", robotController.Create)
-		robots.GET("/:name", robotController.FindByName)
-	}
+	return r
 }

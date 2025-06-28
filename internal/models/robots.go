@@ -19,14 +19,14 @@ type Robot struct {
 	ID             uuid.UUID `gorm:"type:uuid;primaryKey"` // device_id
 	Name           string
 	UserID         uuid.UUID `gorm:"type:uuid;not null"`
-	User           User      `gorm:"foreignKey:UserID"`
+	User           *User      `gorm:"foreignKey:UserID"`
 	ActivateIn     *time.Time
 	Status         RobotStatus `gorm:"type:text;default:'pending'"`
 	PlanValidUntil *time.Time
-	LastPing       *time.Time
-	CreatedAt      time.Time `gorm:"autoCreateTime"`
+	LastPing       *time.Time `json:"ultimo_ping"`
+	CreatedAt      time.Time  `gorm:"autoCreateTime"`
 
-	Plans []Plan `gorm:"foreignKey:RoboID"`
+	Plans []Plan `gorm:"foreignKey:RobotID"`
 }
 
 func (r *Robot) BeforeCreate(tx *gorm.DB) (err error) {

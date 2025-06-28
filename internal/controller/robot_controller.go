@@ -15,14 +15,6 @@ func NewRobotController(service services.RobotService) RobotController {
 	return &robotController{services: service}
 }
 
-type robotController struct {
-	services services.RobotService
-}
-
-func NewRobotController(service services.RobotService) RobotController {
-	return &robotController{services: service}
-}
-
 type RobotController interface {
 	Create(c *gin.Context)
 	FindByName(c *gin.Context)

@@ -20,8 +20,8 @@ type UserInput struct {
 type UserService interface {
 	CreateUser(input UserInput) error
 	FindByEmail(email string) (*models.User, error)
-	Delete(params repository.DeleteUserParams) error
-	Update(ID int64, input dtos.UpdateUserInputDTO) error
+	Delete(param *repository.DeleteUserParams) error
+	Update(ID int64, input *dtos.UpdateUserInputDTO) error
 }
 
 type userService struct {
@@ -37,7 +37,7 @@ func hashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-func (s *userService) Update(ID int64, input dtos.UpdateUserInputDTO) error {
+func (s *userService) Update(ID int64, input *dtos.UpdateUserInputDTO) error {
 	validate := validator.New()
 	if err := validate.Struct(input); err != nil {
 		return errors.New("invalid input" + err.Error())
