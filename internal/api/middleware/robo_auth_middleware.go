@@ -33,7 +33,7 @@ func RoboAuthMiddleware(authService services.AuthService) gin.HandlerFunc {
 		}
 
 		// A mudança principal está aqui: procuramos por "robo_id"
-		roboID, ok := claims["robo_id"].(float64) // O parser de JWT trata números como float64
+		roboID, ok := claims["robo_id"].(string) // robo_id é uma string UUID
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or missing 'robo_id' in token"})
 			c.Abort()

@@ -14,6 +14,7 @@ type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
 	Delete(params *DeleteUserParams) error
+	FindAll() ([]models.User, error)
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
@@ -23,6 +24,14 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 type DeleteUserParams struct {
 	Email string
 	ID    string
+}
+
+func (r *userRepository) FindAll() ([]models.User, error) {
+	var users []models.User
+	if err := r.db.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (r *userRepository) Delete(params *DeleteUserParams) error {

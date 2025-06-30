@@ -39,6 +39,13 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		{
 			robots.POST("", robotController.Create)
 			robots.GET("/:name", robotController.FindByName)
+			robots.POST("/:id/token", robotController.GenerateToken)
+			robots.GET("", robotController.FindAll)
+		}
+
+		users := api.Group("/users").Use(middleware.AuthMiddleware(authService))
+		{
+			users.GET("", userController.FindAll)
 		}
 
 		api.POST("/conversa", middleware.RoboAuthMiddleware(authService), conversaController.Conversa)

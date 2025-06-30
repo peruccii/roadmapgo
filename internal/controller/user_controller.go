@@ -11,6 +11,7 @@ import (
 type UserController interface {
 	Create(c *gin.Context)
 	FindByEmail(c *gin.Context)
+	FindAll(c *gin.Context)
 }
 
 type userController struct {
@@ -19,6 +20,16 @@ type userController struct {
 
 func NewUserController(service services.UserService) UserController {
 	return &userController{service: service}
+}
+
+func (ctrl *userController) FindAll(c *gin.Context) {
+	users, err := ctrl.service.FindAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 }
 
 func (ctrl *userController) Create(c *gin.Context) {

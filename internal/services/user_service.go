@@ -22,6 +22,7 @@ type UserService interface {
 	FindByEmail(email string) (*models.User, error)
 	Delete(param *repository.DeleteUserParams) error
 	Update(ID int64, input *dtos.UpdateUserInputDTO) error
+	FindAll() ([]models.User, error)
 }
 
 type userService struct {
@@ -35,6 +36,10 @@ func NewUserService(repo repository.UserRepository) UserService {
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
+}
+
+func (s *userService) FindAll() ([]models.User, error) {
+	return s.repo.FindAll()
 }
 
 func (s *userService) Update(ID int64, input *dtos.UpdateUserInputDTO) error {

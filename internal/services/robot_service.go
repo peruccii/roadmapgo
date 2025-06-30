@@ -2,8 +2,11 @@ package services
 
 import (
 	"errors"
+	"os"
+	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/peruccii/roadmap-go-backend/internal/models"
 	"github.com/peruccii/roadmap-go-backend/internal/repository"
@@ -15,17 +18,74 @@ type CreateRobotInput struct {
 }
 
 type robotService struct {
-	repo repository.RobotRepository
+	repo        repository.RobotRepository
 	planService PlanService
+	secretKey   []byte
 }
 
 func NewRobotService(repo repository.RobotRepository, planService PlanService) RobotService {
-	return &robotService{repo: repo, planService: planService}
+	secret := os.Getenv("JWT_SECRET_KEY")
+	if secret == "" {
+		secret = "default-secret"
+	}
+	return &robotService{
+		repo:        repo,
+		planService: planService,
+		secretKey:   []byte(secret),
+	}
 }
 
 type RobotService interface {
 	CreateRobot(input CreateRobotInput) error
 	FindByName(name string) (*models.Robot, error)
+	GenerateRobotToken(robotID, userID string) (string, error)
+	FindAll() ([]models.Robot, error)
+}
+
+func (r *robotService) FindAll() ([]models.Robot, error) {
+	robots, err := r.repo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+
+	// Atualizar PlanValidUntil para cada robô baseado nos planos ativos
+	for i := range robots {
+		r.updateRobotPlanValidUntil(&robots[i])
+	}
+
+	return robots, nil
+}
+
+func (s *robotService) GenerateRobotToken(robotID, userID string) (string, error) {
+	robot, err := s.repo.FindByIDAndUserID(robotID, userID)
+	if err != nil {
+		return "", err
+	}
+	if robot == nil {
+		return "", errors.New("robot not found")
+	}
+
+	parsedRobotID, err := uuid.Parse(robotID)
+	if err != nil {
+		return "", errors.New("invalid robot id")
+	}
+
+	plan, err := s.planService.GetPlanByRobotID(parsedRobotID)
+	if err != nil {
+		return "", err
+	}
+
+	if plan.ExpiredIn.Before(time.Now()) {
+		return "", errors.New("plan expired")
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"robo_id": robot.ID,
+			"exp":     time.Now().Add(time.Hour * 24 * 30).Unix(),
+		})
+
+	return token.SignedString(s.secretKey)
 }
 
 func (r *robotService) FindByName(name string) (*models.Robot, error) {
@@ -52,9 +112,13 @@ func (r *robotService) CreateRobot(input CreateRobotInput) error {
 		return errors.New("invalid user id")
 	}
 
+	// Calcular data de expiração do plano básico (1 mês)
+	planValidUntil := time.Now().Add(time.Hour * 24 * 30)
+
 	robot := &models.Robot{
-		Name:   input.Name,
-		UserID: userID,
+		Name:           input.Name,
+		UserID:         userID,
+		PlanValidUntil: &planValidUntil,
 	}
 
 	if err := r.repo.Create(robot); err != nil {
@@ -66,4 +130,22 @@ func (r *robotService) CreateRobot(input CreateRobotInput) error {
 	}
 
 	return nil
+}
+
+// updateRobotPlanValidUntil atualiza o campo PlanValidUntil do robô baseado nos planos ativos
+func (r *robotService) updateRobotPlanValidUntil(robot *models.Robot) {
+	if len(robot.Plans) == 0 {
+		robot.PlanValidUntil = nil
+		return
+	}
+
+	// Encontrar o plano ativo com data de expiração mais recente
+	var latestExpiration *time.Time
+	for _, plan := range robot.Plans {
+		if plan.Active && (latestExpiration == nil || plan.ExpiredIn.After(*latestExpiration)) {
+			latestExpiration = &plan.ExpiredIn
+		}
+	}
+
+	robot.PlanValidUntil = latestExpiration
 }
