@@ -92,7 +92,13 @@ func (r *robotService) FindByName(name string) (*models.Robot, error) {
 	return r.repo.FindByName(name)
 }
 
+// CreateRobot agora não pode criar robô diretamente - deve ser feito através do pagamento
 func (r *robotService) CreateRobot(input CreateRobotInput) error {
+	return errors.New("criação de robô deve ser feita através do pagamento. Use o endpoint de pagamento")
+}
+
+// CreateRobotWithPayment cria robô após confirmação de pagamento (usado internamente)
+func (r *robotService) CreateRobotWithPayment(input CreateRobotInput, planValidUntil time.Time) error {
 	validate := validator.New()
 	if err := validate.Struct(input); err != nil {
 		return errors.New("invalid input" + err.Error())
@@ -112,12 +118,10 @@ func (r *robotService) CreateRobot(input CreateRobotInput) error {
 		return errors.New("invalid user id")
 	}
 
-	// Calcular data de expiração do plano básico (1 mês)
-	planValidUntil := time.Now().Add(time.Hour * 24 * 30)
-
 	robot := &models.Robot{
 		Name:           input.Name,
 		UserID:         userID,
+		Status:         models.StatusActive, // Ativo após pagamento
 		PlanValidUntil: &planValidUntil,
 	}
 

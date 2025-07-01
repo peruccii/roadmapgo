@@ -10,7 +10,9 @@ import (
 type PlanType string
 
 const (
-	BasicPlan PlanType = "basic"
+	BasicPlan     PlanType = "basic"
+	PremiumPlan   PlanType = "premium"
+	EnterprisePlan PlanType = "enterprise"
 )
 
 type Plan struct {

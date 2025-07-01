@@ -23,6 +23,7 @@ type UserService interface {
 	Delete(param *repository.DeleteUserParams) error
 	Update(ID int64, input *dtos.UpdateUserInputDTO) error
 	FindAll() ([]models.User, error)
+	FindByID(id string) (*models.User, error)
 }
 
 type userService struct {
@@ -56,8 +57,6 @@ func (s *userService) Update(ID int64, input *dtos.UpdateUserInputDTO) error {
 	if user == nil {
 		return nil
 	}
-
-	// verificar se o novo email ( se fornecido ) já esta em uso por outro usuario
 
 	if input.Email != "" && input.Email != user.Email {
 		existingUser, err := s.repo.FindByEmail(input.Email)
@@ -132,4 +131,8 @@ func (s *userService) CreateUser(input UserInput) error {
 
 func (s *userService) FindByEmail(email string) (*models.User, error) {
 	return s.repo.FindByEmail(email)
+}
+
+func (s *userService) FindByID(id string) (*models.User, error) {
+	return s.repo.FindByID(id)
 }

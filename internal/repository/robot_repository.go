@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/peruccii/roadmap-go-backend/internal/dtos"
 	"github.com/peruccii/roadmap-go-backend/internal/models"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ type RobotRepository interface {
 	FindByName(name string) (*models.Robot, error)
 	FindByIDAndUserID(id, userID string) (*models.Robot, error)
 	FindAll() ([]models.Robot, error)
+	FindById(id uuid.UUID) (*models.Robot, error)
 }
 
 func (r *robotRepository) FindAll() ([]models.Robot, error) {
@@ -52,6 +54,17 @@ func (r *robotRepository) Active(input *dtos.ActiveReqInputDTO) *models.Robot {
 func (r *robotRepository) FindByName(name string) (*models.Robot, error) {
 	var robot models.Robot
 	if err := r.db.Where("name = ?", name).First(&robot).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &robot, nil
+}
+
+func (r *robotRepository) FindById(id uuid.UUID) (*models.Robot, error) {
+	var robot models.Robot
+	if err := r.db.Where("id = ?", id).First(&robot).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

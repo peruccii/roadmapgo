@@ -20,7 +20,7 @@ func main() {
 		panic("Falha ao conectar ao banco de dados: " + err.Error())
 	}
 
-	err = database.AutoMigrate(&models.User{}, &models.Robot{}, &models.Plan{}, &models.ConversaLog{})
+	err = database.AutoMigrate(&models.User{}, &models.Robot{}, &models.Plan{}, &models.ConversaLog{}, &models.Payment{}, &models.Subscription{})
 	if err != nil {
 		panic("Falha ao migrar o banco de dados: " + err.Error())
 	}

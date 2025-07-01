@@ -15,6 +15,7 @@ type UserRepository interface {
 	Create(user *models.User) error
 	Delete(params *DeleteUserParams) error
 	FindAll() ([]models.User, error)
+	FindByID(id string) (*models.User, error)
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
@@ -57,6 +58,17 @@ func (r *userRepository) Delete(params *DeleteUserParams) error {
 func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) { // verifica se o erro foi porque nenhum registro foi encontrado
+			return nil, nil // sim
+		}
+		return nil, err // nao
+	}
+	return &user, nil
+}
+
+func (r *userRepository) FindByID(id string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) { // verifica se o erro foi porque nenhum registro foi encontrado
 			return nil, nil // sim
 		}
